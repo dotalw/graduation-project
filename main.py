@@ -1,16 +1,17 @@
-import cv2
-from google.cloud import vision
-from google.oauth2 import service_account
-import pyttsx3
-import os
-import time
 import threading
 
-# Specify the path to the service account key JSON file
-service_account_key_path = os.path.join(os.path.dirname(__file__), 'yourkey.json')
+import cv2
+import pyttsx4
+from dotenv import dotenv_values
+from google.cloud import vision
+from google.oauth2 import service_account
+from libcamera import controls
+from picamera2 import Picamera2
+
+config = dotenv_values('.env')
 
 # Initialize Google Cloud Vision client with service account key
-credentials = service_account.Credentials.from_service_account_file(service_account_key_path)
+credentials = service_account.Credentials.from_service_account_file(config.get('GCLOUD_KEY'))
 client = vision.ImageAnnotatorClient(credentials=credentials)
 
 
@@ -33,7 +34,7 @@ def ocr_image(image):
 
 # Function to convert text to speech and play it directly
 def text_to_speech(text, lang='en'):
-    engine = pyttsx3.init()
+    engine = pyttsx4.init()
     voices = engine.getProperty('voices')
     for voice in voices:
         if len(voice.languages) > 0 and voice.languages[0] == lang:
@@ -58,13 +59,12 @@ def detect_language(text):
 
 # Function to read video frames and perform OCR
 def process_video():
-    cap = cv2.VideoCapture(0)
-    time.sleep(2)  # Allow the camera to initialize and focus
+    picam2 = Picamera2()
+    picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1536, 864)}))
+    picam2.start()
+    picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
     while True:
-        ret, frame = cap.read()
-        if not ret:
-            print("Error: Couldn't capture frame")
-            break
+        frame = picam2.capture_array()
         text = ocr_image(frame)
         cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.imshow('Video', frame)
@@ -73,7 +73,6 @@ def process_video():
             threading.Thread(target=text_to_speech, args=(text, lang)).start()
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    cap.release()
     cv2.destroyAllWindows()
 
 
