@@ -1,5 +1,6 @@
 import pyttsx4
-from ftlangdetect import detect
+
+from modules import ftl
 
 
 class TTS:
@@ -17,12 +18,9 @@ class TTS:
         return None
 
     def set_lang(self, text):
-        detected_lang = self.detect_lang(text.replace('\n', ' '))['lang']
+        detected_lang = ftl.detect_lang(text.replace('\n', ' '))['lang']
         if not self.set_voice(detected_lang):
             self.engine.setProperty('voice', self.default_voice)
-
-    def detect_lang(self, text):
-        return detect(text=text, low_memory=self.low_mem)
 
     def speak(self, text):
         self.set_lang(text)

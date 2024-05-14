@@ -1,18 +1,15 @@
 from io import BytesIO
 
-from ftlangdetect import detect
 from gtts import gTTS, lang
 from pygame import mixer
+
+from modules import ftl
 
 mixer.init()
 
 
-def detect_lang(text, lm=False):
-    return detect(text=text, low_memory=lm)
-
-
 def set_lang(text, lm=False):
-    return detect_lang(text.replace('\n', ' '), lm)['lang']
+    return ftl.detect_lang(text.replace('\n', ' '), lm)['lang']
 
 
 def speak(text, slow=False, lm=False):
