@@ -10,17 +10,16 @@ from modules.tts2 import speak as tts2
 from modules.vision import Vision
 
 config = dotenv_values('.env')
-vision = Vision(config)
-cam = Camera()
 
-parser = argparse.ArgumentParser(description="Process some integers.")
+parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--preview', action='store_true', help='An optional argument for preview')
 parser.add_argument('--gtts', action='store_true', help='Enable gTTS instead of pyttsx4')
 parser.add_argument('--slow', action='store_true', help='Force gTTS to read slower')
+parser.add_argument('--low-mem', action='store_true')
 args = parser.parse_args()
 
 if not args.gtts:
-    tts = TTS()
+    tts = TTS(low_memory=args.low_mem)
 
 
 def process_video():
@@ -32,7 +31,7 @@ def process_video():
             cv2.imshow('Video', frame)
         if text != "No text detected" and text != "Error":
             if args.gtts:
-                tts2(text, args.slow)
+                tts2(text, slow=args.slow, lm=args.low_mem)
             else:
                 threading.Thread(target=tts.speak, args=(' '.join(text),)).start()
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -42,4 +41,6 @@ def process_video():
 
 # Main function to start video processing
 if __name__ == '__main__':
+    vision = Vision(config)
+    cam = Camera()
     process_video()

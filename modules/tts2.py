@@ -7,18 +7,18 @@ from pygame import mixer
 mixer.init()
 
 
-def detect_lang(text):
-    return detect(text=text, low_memory=False)
+def detect_lang(text, lm=False):
+    return detect(text=text, low_memory=lm)
 
 
-def set_lang(text):
-    return detect_lang(text.replace('\n', ' '))['lang']
+def set_lang(text, lm=False):
+    return detect_lang(text.replace('\n', ' '), lm)['lang']
 
 
-def speak(text, slow=False):
+def speak(text, slow=False, lm=False):
     if not text:
         return
-    dlang = set_lang(text)
+    dlang = set_lang(text, lm)
     if dlang not in lang.tts_langs():
         dlang = 'en'
     mp3_fp = BytesIO()
